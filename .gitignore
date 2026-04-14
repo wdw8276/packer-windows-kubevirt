@@ -1,0 +1,14 @@
+packer_cache/
+builds/
+output-*/
+iso/
+*.log
+*.fd
+*.ms.fd
+*.iso
+.claude
+
+# Generated from templates, contain plaintext password
+answer_files/11_23h2_eval_kubevirt/Autounattend.xml
+answer_files/11_ltsc_2024_kubevirt/Autounattend.xml
+answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml
