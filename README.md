@@ -1,16 +1,40 @@
 # Packer Images for Windows on KubeVirt
 
-Builds Windows 11 (23H2 Enterprise Evaluation) and Windows 11 LTSC 2024 images specially adapted for [KubeVirt](https://kubevirt.io/).
+Builds Windows 11 images specially adapted for [KubeVirt](https://kubevirt.io/).
+
+Supported editions:
+- Windows 11 23H2 Enterprise Evaluation
+- Windows 11 LTSC 2024
+- Windows 11 25H2 Pro
 
 ## Features
 
-- VirtIO drivers (NetKVM, vioscsi, vioserial, viostor, viorng, Balloon, viofs)
+- VirtIO drivers (see table below)
 - QEMU Guest Agent
 - CloudBase-Init for cloud-init integration
 - WinFsp + VirtIO-FS service
+- SPICE Guest Agent
 - RDP enabled
+- OpenSSH Server enabled
 - Sysprep on first boot (post-sysprep lock file mechanism)
 - Output in compressed qcow2 format
+
+## Installed Drivers and Components
+
+| Name | Type | Description |
+|---|---|---|
+| NetKVM | VirtIO driver | Paravirtualized network adapter |
+| vioscsi | VirtIO driver | Paravirtualized SCSI controller |
+| vioserial | VirtIO driver | Paravirtualized serial port |
+| viostor | VirtIO driver | Paravirtualized block storage |
+| viorng | VirtIO driver | Paravirtualized random number generator |
+| Balloon | VirtIO driver | Memory balloon (dynamic memory management) |
+| viofs | VirtIO driver | VirtIO filesystem (shared folder support) |
+| QEMU Guest Agent | Service | Guest-host communication (shutdown, snapshot, etc.) |
+| CloudBase-Init | Service | Cloud-init integration for first-boot configuration |
+| WinFsp | Runtime | Windows filesystem proxy, required by VirtIO-FS |
+| VirtIO-FS Service | Service | Mounts VirtIO-FS shared directories |
+| SPICE Guest Agent | Agent | Clipboard sharing, display resolution with SPICE display |
 
 ## Prerequisites
 
@@ -46,6 +70,15 @@ Download from [Microsoft Evaluation Center](https://www.microsoft.com/en-us/eval
 
 Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
 
+### Windows 11 25H2 Pro
+
+| Field | Value |
+|---|---|
+| Filename | `Win11_25H2_English_x64_v2.iso` |
+| Edition | Windows 11 Pro (25H2) |
+
+Download from [Microsoft](https://www.microsoft.com/en-us/software-download/windows11).
+
 ## Building
 
 Initialize plugins before the first build:
@@ -63,8 +96,9 @@ make
 Build a specific image:
 
 ```bash
-make win11_23h2_eval_kubevirt
-make win11_ltsc_2024_kubevirt
+make win11_23h2_eval_kubevirt WINRM_PASSWORD=<password>
+make win11_ltsc_2024_kubevirt WINRM_PASSWORD=<password>
+make win11_25h2_pro_kubevirt  WINRM_PASSWORD=<password>
 ```
 
 ### Build Variables
