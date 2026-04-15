@@ -103,6 +103,13 @@ Start-Sleep -Seconds 10
 Write-Host "Enable Administrator account"
 net user Administrator /active:yes
 
+Write-Host "Register startup task to keep wuauserv disabled"
+$action1 = New-ScheduledTaskAction -Execute 'sc.exe' -Argument 'config wuauserv start= disabled'
+$action2 = New-ScheduledTaskAction -Execute 'sc.exe' -Argument 'stop wuauserv'
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -RunLevel Highest
+Register-ScheduledTask -TaskName 'DisableWindowsUpdate' -Action $action1,$action2 -Trigger $trigger -Principal $principal -Force
+
 Function Cleanup {
   Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
   Set-Service -Name wuauserv -StartupType Disabled -ErrorAction SilentlyContinue
