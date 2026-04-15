@@ -63,10 +63,9 @@ REM Install openssh server
 powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0"
 
 REM Enable SSH
-powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Service sshd"
-powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Set-Service -Name sshd -StartupType 'Automatic'"
-powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Get-NetFirewallRule -Name *ssh*"
-powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22"
+powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Set-Service -Name sshd -StartupType 'Automatic'; Start-Service sshd"
+powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "if (!(Get-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -ErrorAction SilentlyContinue)) { New-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 }"
+powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Get-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' | Format-List Name, Enabled, Direction, Action"
 
 REM Enable RDP / Create FW rules
 netsh advfirewall firewall add rule name="Open Port 3389" dir=in action=allow protocol=TCP localport=3389
