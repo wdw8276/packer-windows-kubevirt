@@ -16,6 +16,7 @@ Supported editions:
 - SPICE Guest Agent
 - RDP enabled
 - OpenSSH Server enabled
+- Windows Update disabled (policy + startup task)
 - Sysprep on first boot (post-sysprep lock file mechanism)
 - Output in compressed qcow2 format
 
@@ -41,7 +42,7 @@ Supported editions:
 - QEMU with KVM support
 - Packer 1.9.4 or above
 - `virt-sparsify` (for image compression)
-- `ovmf` (UEFI firmware, required for LTSC 2024 build)
+- `ovmf` (UEFI firmware, required for LTSC 2024 and 25H2 Pro builds)
 
 ## Preparing ISO Files
 
@@ -76,6 +77,7 @@ Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions
 |---|---|
 | Filename | `Win11_25H2_English_x64_v2.iso` |
 | Edition | Windows 11 Pro (25H2) |
+| SHA256 | `768984706b909479417b2368438909440f2967ff05c6a9195ed2667254e465e3` |
 
 Download from [Microsoft](https://www.microsoft.com/en-us/software-download/windows11).
 
@@ -134,6 +136,22 @@ The generated XML files are not committed to the repository.
 
 A file `C:\not-yet-finished` is created during provisioning and deleted after
 sysprep completes. Check for its absence to confirm the image is fully prepared.
+
+## Activation
+
+| Edition | Activation |
+|---|---|
+| Windows 11 23H2 Enterprise Evaluation | No activation required (90-day trial) |
+| Windows 11 LTSC 2024 | KMS activation supported, valid 180 days with auto-renewal |
+| Windows 11 25H2 Pro | KMS activation supported, valid 180 days with auto-renewal |
+
+LTSC 2024 and 25H2 Pro use GVLK keys. To activate via KMS, run the following commands on the VM:
+
+```bat
+slmgr /skms <kms-server>:<port>
+slmgr /ato
+slmgr /dli
+```
 
 ## Cleaning Up
 
