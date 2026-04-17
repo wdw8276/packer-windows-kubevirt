@@ -50,6 +50,17 @@ Supported editions:
 Place the following ISO files in the `iso/` directory before building.
 The `iso/` directory is listed in `.gitignore` and is not committed to the repository.
 
+### VirtIO Drivers
+
+| Field | Value |
+|---|---|
+| Filename | `virtio-win-0.1.266.iso` |
+| Version | 0.1.266 |
+| Size | 691 MB |
+| SHA256 | `57b0f6dc8dc92dc2ae8621f8b1bfbd8a873de9bedc788c4c4b305ea28acc77cd` |
+
+Download from [virtio-win releases](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/).
+
 ### Windows 11 23H2 Enterprise Evaluation
 
 | Field | Value |
@@ -78,6 +89,7 @@ Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions
 |---|---|
 | Filename | `Win11_25H2_English_x64_v2.iso` |
 | Edition | Windows 11 Pro (25H2) |
+| Size | 7.9 GB |
 | SHA256 | `768984706b909479417b2368438909440f2967ff05c6a9195ed2667254e465e3` |
 
 Download from [Microsoft](https://www.microsoft.com/en-us/software-download/windows11).
@@ -88,6 +100,7 @@ Download from [Microsoft](https://www.microsoft.com/en-us/software-download/wind
 |---|---|
 | Filename | `en_windows_10_enterprise_ltsc_2019_x64_dvd_5795bb03.iso` |
 | Edition | Windows 10 Enterprise LTSC 2019 |
+| Size | 4.1 GB |
 | SHA256 | `b570ddfdc4672f4629a95316563df923bd834aec657de5d4ca7c7ef9b58df2b1` |
 
 Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
