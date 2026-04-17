@@ -1,11 +1,12 @@
 # Packer Images for Windows on KubeVirt
 
-Builds Windows 11 images specially adapted for [KubeVirt](https://kubevirt.io/).
+Builds Windows images specially adapted for [KubeVirt](https://kubevirt.io/).
 
 Supported editions:
 - Windows 11 23H2 Enterprise Evaluation
-- Windows 11 LTSC 2024
+- Windows 11 Enterprise LTSC 2024
 - Windows 11 25H2 Pro
+- Windows 10 Enterprise LTSC 2019
 
 ## Features
 
@@ -42,7 +43,7 @@ Supported editions:
 - QEMU with KVM support
 - Packer 1.9.4 or above
 - `virt-sparsify` (for image compression)
-- `ovmf` (UEFI firmware, required for LTSC 2024 and 25H2 Pro builds)
+- `ovmf` (UEFI firmware, required for LTSC 2024, 25H2 Pro, and Win10 LTSC 2019 builds)
 
 ## Preparing ISO Files
 
@@ -60,7 +61,7 @@ The `iso/` directory is listed in `.gitignore` and is not committed to the repos
 
 Download from [Microsoft Evaluation Center](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise).
 
-### Windows 11 LTSC 2024
+### Windows 11 Enterprise LTSC 2024
 
 | Field | Value |
 |---|---|
@@ -80,6 +81,16 @@ Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions
 | SHA256 | `768984706b909479417b2368438909440f2967ff05c6a9195ed2667254e465e3` |
 
 Download from [Microsoft](https://www.microsoft.com/en-us/software-download/windows11).
+
+### Windows 10 Enterprise LTSC 2019
+
+| Field | Value |
+|---|---|
+| Filename | `en_windows_10_enterprise_ltsc_2019_x64_dvd_5795bb03.iso` |
+| Edition | Windows 10 Enterprise LTSC 2019 |
+| SHA256 | `b570ddfdc4672f4629a95316563df923bd834aec657de5d4ca7c7ef9b58df2b1` |
+
+Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
 
 ## Building
 
@@ -101,6 +112,7 @@ Build a specific image:
 make win11_23h2_eval_kubevirt WINRM_PASSWORD=<password>
 make win11_ltsc_2024_kubevirt WINRM_PASSWORD=<password>
 make win11_25h2_pro_kubevirt  WINRM_PASSWORD=<password>
+make win10_ltsc_2019_kubevirt WINRM_PASSWORD=<password>
 ```
 
 ### Build Variables
@@ -120,10 +132,26 @@ To change the default WinRM password and timezone:
 make WINRM_PASSWORD=mysecret TIMEZONE="UTC" win11_23h2_eval_kubevirt
 ```
 
+Common timezone values (full list: [Microsoft Default Time Zones](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/default-time-zones?view=windows-11)):
+
+| Region | Timezone | UTC |
+|---|---|---|
+| UTC | `UTC` | UTC+00:00 |
+| China / Hong Kong | `China Standard Time` | UTC+08:00 |
+| Europe (Paris, Berlin, Rome) | `W. Europe Standard Time` | UTC+01:00 |
+| US Eastern | `Eastern Standard Time` | UTC-05:00 |
+| Australia Eastern (Sydney) | `AUS Eastern Standard Time` | UTC+10:00 |
+
 To enable debug logging and show the QEMU window during build:
 
 ```bash
 make PACKER_LOG=1 HEADLESS=false win11_23h2_eval_kubevirt
+```
+
+To enable debug logging and capture output to a log file:
+
+```bash
+make win10_ltsc_2019_kubevirt WINRM_PASSWORD=<password> TIMEZONE="AUS Eastern Standard Time" PACKER_LOG=1 HEADLESS=false 2>&1 | tee build.log
 ```
 
 ### How It Works
@@ -142,8 +170,9 @@ sysprep completes. Check for its absence to confirm the image is fully prepared.
 | Edition | Activation |
 |---|---|
 | Windows 11 23H2 Enterprise Evaluation | No activation required (90-day trial) |
-| Windows 11 LTSC 2024 | KMS activation supported, valid 180 days with auto-renewal |
+| Windows 11 Enterprise LTSC 2024 | KMS activation supported, valid 180 days with auto-renewal |
 | Windows 11 25H2 Pro | KMS activation supported, valid 180 days with auto-renewal |
+| Windows 10 Enterprise LTSC 2019 | KMS activation supported, valid 180 days with auto-renewal |
 
 LTSC 2024 and 25H2 Pro use GVLK keys. To activate via KMS, run the following commands on the VM:
 
