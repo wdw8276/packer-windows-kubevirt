@@ -16,6 +16,7 @@ TIMEZONE ?= China Standard Time
 ISO_WIN11_23H2_EVAL  := iso/Windows_11_23H2_EnterpriseEval_x64.iso
 ISO_WIN11_LTSC_2024  := iso/en-us_windows_11_enterprise_ltsc_2024_x64_dvd_965cfb00.iso
 ISO_WIN11_25H2_PRO   := iso/Win11_25H2_English_x64_v2.iso
+ISO_WIN10_LTSC_2019  := iso/en_windows_10_enterprise_ltsc_2019_x64_dvd_5795bb03.iso
 
 # Use '>' as recipe prefix instead of tab (requires GNU Make 4.0+)
 ifeq ($(origin .RECIPEPREFIX), undefined)
@@ -24,7 +25,7 @@ endif
 .RECIPEPREFIX = >
 
 # Default target: build all images
-all: win11_23h2_eval_kubevirt win11_ltsc_2024_kubevirt win11_25h2_pro_kubevirt
+all: win11_23h2_eval_kubevirt win11_ltsc_2024_kubevirt win11_25h2_pro_kubevirt win10_ltsc_2019_kubevirt
 .PHONY: all
 
 # Validate required build variables
@@ -42,6 +43,7 @@ clean:
 >rm -f answer_files/11_23h2_eval_kubevirt/Autounattend.xml
 >rm -f answer_files/11_ltsc_2024_kubevirt/Autounattend.xml
 >rm -f answer_files/11_25h2_pro_kubevirt/Autounattend.xml
+>rm -f answer_files/10_ltsc_2019_kubevirt/Autounattend.xml
 >rm -f answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml
 .PHONY: clean
 
@@ -55,6 +57,9 @@ answer_files/11_ltsc_2024_kubevirt/Autounattend.xml: answer_files/11_ltsc_2024_k
 answer_files/11_25h2_pro_kubevirt/Autounattend.xml: answer_files/11_25h2_pro_kubevirt/Autounattend.xml.tmpl
 >sed 's/{{WINRM_PASSWORD}}/$(WINRM_PASSWORD)/g; s/{{TIMEZONE}}/$(TIMEZONE)/g' $< > $@
 
+answer_files/10_ltsc_2019_kubevirt/Autounattend.xml: answer_files/10_ltsc_2019_kubevirt/Autounattend.xml.tmpl
+>sed 's/{{WINRM_PASSWORD}}/$(WINRM_PASSWORD)/g; s/{{TIMEZONE}}/$(TIMEZONE)/g' $< > $@
+
 answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml: answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml.tmpl
 >sed 's/{{WINRM_PASSWORD}}/$(WINRM_PASSWORD)/g; s/{{TIMEZONE}}/$(TIMEZONE)/g' $< > $@
 
@@ -65,6 +70,8 @@ win11_ltsc_2024_kubevirt: check-vars output-windows_11_ltsc_2024_kubevirt/win11_
 .PHONY: win11_ltsc_2024_kubevirt
 win11_25h2_pro_kubevirt: check-vars output-windows_11_25h2_pro_kubevirt/win11_25h2_pro_kubevirt
 .PHONY: win11_25h2_pro_kubevirt
+win10_ltsc_2019_kubevirt: check-vars output-windows_10_ltsc_2019_kubevirt/win10_ltsc_2019_kubevirt
+.PHONY: win10_ltsc_2019_kubevirt
 
 # Packer build rules: XML files are generated first, then packer is invoked
 output-win11_23h2_eval_kubevirt/win11_23h2_eval_kubevirt: \
@@ -119,3 +126,24 @@ output-windows_11_25h2_pro_kubevirt/win11_25h2_pro_kubevirt: \
 >cp /usr/share/OVMF/OVMF_CODE_4M.ms.fd ./OVMF_CODE.ms.fd
 >cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd ./OVMF_VARS.ms.fd
 >PACKER_LOG=$(PACKER_LOG) packer build -var=headless=$(HEADLESS) -var=winrm_password=$(WINRM_PASSWORD) win11_25h2_pro_kubevirt.pkr.hcl
+
+# Win10 LTSC 2019 requires UEFI firmware files copied locally before build
+output-windows_10_ltsc_2019_kubevirt/win10_ltsc_2019_kubevirt: \
+  answer_files/10_ltsc_2019_kubevirt/Autounattend.xml \
+  answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml
+>@if [ ! -f "$(ISO_WIN10_LTSC_2019)" ]; then \
+>  echo "ERROR: ISO not found: $(ISO_WIN10_LTSC_2019)"; \
+>  echo "Download Windows 10 Enterprise LTSC 2019 and place it in the iso/ directory."; \
+>  exit 1; \
+>fi
+>@for f in /usr/share/OVMF/OVMF_CODE_4M.ms.fd /usr/share/OVMF/OVMF_VARS_4M.ms.fd; do \
+>  if [ ! -f "$$f" ]; then \
+>    echo "ERROR: OVMF firmware file not found: $$f"; \
+>    echo "Install it with: apt install ovmf"; \
+>    exit 1; \
+>  fi; \
+>done
+>rm -rf output-windows_10_ltsc_2019_kubevirt
+>cp /usr/share/OVMF/OVMF_CODE_4M.ms.fd ./OVMF_CODE.ms.fd
+>cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd ./OVMF_VARS.ms.fd
+>PACKER_LOG=$(PACKER_LOG) packer build -var=headless=$(HEADLESS) -var=winrm_password=$(WINRM_PASSWORD) win10_ltsc_2019_kubevirt.pkr.hcl
