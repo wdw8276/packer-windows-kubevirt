@@ -50,6 +50,27 @@ Supported editions:
 Place the following ISO files in the `iso/` directory before building.
 The `iso/` directory is listed in `.gitignore` and is not committed to the repository.
 
+## Preparing Packages
+
+The `packages/` directory contains installers bundled into the build CD image.
+Large binary files are excluded from the repository and must be downloaded separately.
+
+### .NET Framework 4.8 Installer
+
+Required for Win10 LTSC 2019 and LTSC 2021 builds only. Win10 does not include .NET 4.8,
+and without a local copy Chocolatey will attempt to download it (~116 MB) during build,
+which can cause timeouts.
+
+| Field | Value |
+|---|---|
+| Filename | `ndp48-x86-x64-allos-enu.exe` |
+| Size | 116 MB |
+| SHA256 | `68c9986a8dcc0214d909aa1f31bee9fb5461bb839edca996a75b08ddffc1483f` |
+
+Download: https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe
+
+Place the downloaded file in `packages/`.
+
 ### VirtIO Drivers
 
 | Field | Value |
