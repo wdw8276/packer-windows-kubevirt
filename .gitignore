@@ -8,6 +8,11 @@ iso/
 *.iso
 .claude
 
+# uv / Python
+.python-version
+pyproject.toml
+uv.lock
+
 # Large binary installers - download separately
 packages/ndp48-x86-x64-allos-enu.exe
 
