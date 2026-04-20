@@ -11,10 +11,6 @@ iso/
 # Large binary installers - download separately
 packages/ndp48-x86-x64-allos-enu.exe
 
-# Generated from templates, contain plaintext password
-answer_files/11_23h2_eval_kubevirt/Autounattend.xml
-answer_files/11_ltsc_2024_kubevirt/Autounattend.xml
-answer_files/11_25h2_pro_kubevirt/Autounattend.xml
-answer_files/10_ltsc_2019_kubevirt/Autounattend.xml
-answer_files/10_ltsc_2021_kubevirt/Autounattend.xml
+# Auto-generated, do not commit
+Autounattend.xml
 answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml
