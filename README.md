@@ -7,6 +7,8 @@ Supported editions:
 - Windows 11 Enterprise LTSC 2024
 - Windows 11 25H2 Pro
 - Windows 10 Enterprise LTSC 2019
+- Windows 10 Enterprise LTSC 2021
+- Windows Server 2022 Datacenter
 
 ## Features
 
@@ -126,6 +128,28 @@ Download from [Microsoft](https://www.microsoft.com/en-us/software-download/wind
 
 Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
 
+### Windows 10 Enterprise LTSC 2021
+
+| Field | Value |
+|---|---|
+| Filename | `en-us_windows_10_enterprise_ltsc_2021_x64_dvd_d289cf96.iso` |
+| Edition | Windows 10 Enterprise LTSC 2021 |
+| Size | 4.7 GB |
+| SHA256 | `c90a6df8997bf49e56b9673982f3e80745058723a707aef8f22998ae6479597d` |
+
+Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
+
+### Windows Server 2022 Datacenter
+
+| Field | Value |
+|---|---|
+| Filename | `en_windows_server_2022x64_dvd_.iso` |
+| Edition | Windows Server 2022 Datacenter |
+| Size | 4.4 GB |
+| SHA256 | `81e432fd695c9d00843c7eed5f5ed92ad49aa66f173672877f36cee6ad5b233e` |
+
+Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
+
 ## Building
 
 Initialize plugins before the first build:
@@ -147,6 +171,8 @@ make win11_23h2_eval_kubevirt WINRM_PASSWORD=<password>
 make win11_ltsc_2024_kubevirt WINRM_PASSWORD=<password>
 make win11_25h2_pro_kubevirt  WINRM_PASSWORD=<password>
 make win10_ltsc_2019_kubevirt WINRM_PASSWORD=<password>
+make win10_ltsc_2021_kubevirt WINRM_PASSWORD=<password>
+make win2022_datacenter_kubevirt WINRM_PASSWORD=<password>
 ```
 
 ### Build Variables
@@ -207,6 +233,8 @@ sysprep completes. Check for its absence to confirm the image is fully prepared.
 | Windows 11 Enterprise LTSC 2024 | KMS activation supported, valid 180 days with auto-renewal |
 | Windows 11 25H2 Pro | KMS activation supported, valid 180 days with auto-renewal |
 | Windows 10 Enterprise LTSC 2019 | KMS activation supported, valid 180 days with auto-renewal |
+| Windows 10 Enterprise LTSC 2021 | KMS activation supported, valid 180 days with auto-renewal |
+| Windows Server 2022 Datacenter | KMS activation supported, valid 180 days with auto-renewal |
 
 LTSC 2024 and 25H2 Pro use GVLK keys. To activate via KMS, run the following commands on the VM:
 
@@ -223,3 +251,24 @@ make clean
 ```
 
 Removes build output directories and generated XML files.
+
+## Tools
+
+### winrm-tool
+
+A pure Go WinRM client for inspecting built VMs and performing KMS activation.
+No external dependencies — uses `Connection: close` per request to avoid
+connection-pool reuse issues with Windows Server 2022.
+
+Located at `tools/winrm-tool/`. See [`tools/winrm-tool/README.md`](tools/winrm-tool/README.md) for full usage.
+
+```bash
+# Inspect a VM (runs commands from commands.json)
+./winrm-tool -host 192.168.1.100 -pass <password>
+
+# KMS activation
+./winrm-tool -host 192.168.1.100 -pass <password> -kms 192.168.1.7
+
+# Generate sample commands.json
+./winrm-tool -init commands.json
+```

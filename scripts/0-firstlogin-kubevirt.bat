@@ -8,7 +8,12 @@ REM Set high performance mode
 powercfg /SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
 REM Copy our sysprep Autounattend for our post-packer first boot
-copy "A:/Firstboot-Autounattend-kubevirt.xml" "C:/Windows/Temp/Autounattend.xml"
+REM Try OS-specific variant first, fall back to the standard file
+if exist "A:\Firstboot-Autounattend-kubevirt-win2022.xml" (
+    copy "A:\Firstboot-Autounattend-kubevirt-win2022.xml" "C:\Windows\Temp\Autounattend.xml"
+) else (
+    copy "A:\Firstboot-Autounattend-kubevirt.xml" "C:\Windows\Temp\Autounattend.xml"
+)
 REM Copy the enable-winrm script, relied on by our post-packer autounattend script
 copy "A:/50-enable-winrm.ps1" "C:/Windows/Temp/enable-winrm.ps1"
 
