@@ -1,0 +1,20 @@
+[
+  {"name": "hostname",         "cmd": "hostname"},
+  {"name": "whoami",           "cmd": "whoami"},
+  {"name": "system info",      "cmd": "powershell -Command \"$r = Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion'; $mem = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory/1GB, 1); $cpu = (Get-CimInstance Win32_Processor).Name; $os = Get-CimInstance Win32_OperatingSystem; $uptime = (Get-Date) - $os.LastBootUpTime; $installDate = (([System.DateTimeOffset]::FromUnixTimeSeconds($r.InstallDate)).LocalDateTime).ToString('yyyy-MM-dd HH:mm:ss'); [PSCustomObject]@{ ProductName=$os.Caption; DisplayVersion=$r.DisplayVersion; BuildNumber=$r.CurrentBuildNumber; Architecture=$os.OSArchitecture; CPU=$cpu; MemoryGB=$mem; InstallDate=$installDate; LastBootTime=$os.LastBootUpTime.ToString('yyyy-MM-dd HH:mm:ss'); UptimeMinutes=[math]::Round($uptime.TotalMinutes) } | Format-List | Out-String -Width 200\""},
+  {"name": "network adapters", "cmd": "powershell -Command \"Get-NetAdapter | Format-Table -AutoSize Name, InterfaceDescription, Status, MacAddress, LinkSpeed | Out-String -Width 200\""},
+  {"name": "ip config",        "cmd": "powershell -Command \"Get-NetIPConfiguration | Format-Table -AutoSize InterfaceAlias, InterfaceDescription, IPv4Address, IPv4DefaultGateway | Out-String -Width 200\""},
+  {"name": "disk info",        "cmd": "powershell -Command \"Get-Disk | Format-Table -AutoSize Number, FriendlyName, Size, PartitionStyle, OperationalStatus | Out-String -Width 200\""},
+  {"name": "partitions",       "cmd": "powershell -Command \"Get-Partition | Format-Table -AutoSize DiskNumber, PartitionNumber, Type, Size, DriveLetter, IsActive | Out-String -Width 200\""},
+
+  {"name": "wuauserv service",              "cmd": "sc query wuauserv"},
+  {"name": "wuauserv startup type",         "cmd": "sc qc wuauserv"},
+  {"name": "wuauserv registry Start",       "cmd": "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv\" /v Start"},
+  {"name": "NoAutoUpdate policy",           "cmd": "reg query \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate 2>nul || echo NOT_SET"},
+  {"name": "DisableWindowsUpdate task",     "cmd": "schtasks /query /tn DisableWindowsUpdate /fo LIST"},
+  {"name": "DisableWindowsUpdate last run", "cmd": "powershell -Command \"Get-ScheduledTaskInfo -TaskName DisableWindowsUpdate | Select-Object LastRunTime, LastTaskResult | Format-List\""},
+  {"name": "WaaSMedicSvc config",           "cmd": "sc qc WaaSMedicSvc"},
+  {"name": "WaaSMedicSvc status",           "cmd": "sc query WaaSMedicSvc"},
+  {"name": "defragsvc status",              "cmd": "sc query defragsvc"},
+  {"name": "defragsvc startup type",        "cmd": "sc qc defragsvc"}
+]
