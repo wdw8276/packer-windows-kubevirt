@@ -150,6 +150,18 @@ Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions
 
 Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
 
+### Windows Server 2025 Datacenter Evaluation
+
+| Field | Value |
+|---|---|
+| Filename | `en-us_windows_server_2025_ltsc_eval_x64.iso` |
+| Edition | Windows Server 2025 Datacenter Evaluation (Desktop Experience) |
+| Size | 7.6 GB |
+| SHA256 | `7b052573ba7894c9924e3e87ba732ccd354d18cb75a883efa9b900ea125bfd51` |
+| Image Index | 4 |
+
+Download: [Windows Server 2025 Evaluation](https://aka.ms/TryWS2025)
+
 ## Building
 
 Initialize plugins before the first build:
