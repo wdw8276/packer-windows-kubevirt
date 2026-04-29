@@ -9,6 +9,7 @@ Supported editions:
 - Windows 10 Enterprise LTSC 2019
 - Windows 10 Enterprise LTSC 2021
 - Windows Server 2022 Datacenter
+- Windows Server 2025 Datacenter Evaluation
 
 ## Features
 
@@ -170,12 +171,6 @@ Initialize plugins before the first build:
 packer init win11_23h2_eval_kubevirt.pkr.hcl
 ```
 
-Build all images:
-
-```bash
-make
-```
-
 Build a specific image:
 
 ```bash
@@ -185,6 +180,7 @@ make win11_25h2_pro_kubevirt  WINRM_PASSWORD=<password>
 make win10_ltsc_2019_kubevirt WINRM_PASSWORD=<password>
 make win10_ltsc_2021_kubevirt WINRM_PASSWORD=<password>
 make win2022_datacenter_kubevirt WINRM_PASSWORD=<password>
+make win2025_datacenter_kubevirt WINRM_PASSWORD=<password>
 ```
 
 ### Build Variables
@@ -247,8 +243,9 @@ sysprep completes. Check for its absence to confirm the image is fully prepared.
 | Windows 10 Enterprise LTSC 2019 | KMS activation supported, valid 180 days with auto-renewal |
 | Windows 10 Enterprise LTSC 2021 | KMS activation supported, valid 180 days with auto-renewal |
 | Windows Server 2022 Datacenter | KMS activation supported, valid 180 days with auto-renewal |
+| Windows Server 2025 Datacenter Evaluation | KMS activation supported, valid 180 days with auto-renewal |
 
-LTSC 2024 and 25H2 Pro use GVLK keys. To activate via KMS, run the following commands on the VM:
+To activate via KMS, run the following commands on the VM:
 
 ```bat
 slmgr /skms <kms-server>:<port>
