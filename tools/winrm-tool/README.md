@@ -81,3 +81,11 @@ go run main.go -host 192.168.1.100 -pass <password> \
   {"name": "ip config", "cmd": "ipconfig /all"}
 ]
 ```
+
+Commands can also be passed inline via stdin instead of a file:
+
+```bash
+./winrm-tool -host 192.168.1.100 -pass <password> -commands /dev/stdin <<'EOF'
+[{"name": "hostname", "cmd": "hostname"}]
+EOF
+```

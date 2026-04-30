@@ -9,7 +9,7 @@ Supported editions:
 - Windows 10 Enterprise LTSC 2019
 - Windows 10 Enterprise LTSC 2021
 - Windows Server 2022 Datacenter
-- Windows Server 2025 Datacenter Evaluation
+- Windows Server 2025 Datacenter
 
 ## Features
 
@@ -151,7 +151,7 @@ Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions
 
 Available through Microsoft Volume Licensing or MSDN/Visual Studio subscriptions.
 
-### Windows Server 2025 Datacenter Evaluation
+### Windows Server 2025 Datacenter
 
 | Field | Value |
 |---|---|
@@ -243,7 +243,7 @@ sysprep completes. Check for its absence to confirm the image is fully prepared.
 | Windows 10 Enterprise LTSC 2019 | KMS activation supported, valid 180 days with auto-renewal |
 | Windows 10 Enterprise LTSC 2021 | KMS activation supported, valid 180 days with auto-renewal |
 | Windows Server 2022 Datacenter | KMS activation supported, valid 180 days with auto-renewal |
-| Windows Server 2025 Datacenter Evaluation | KMS activation supported, valid 180 days with auto-renewal |
+| Windows Server 2025 Datacenter | Converted from Evaluation to full Datacenter during build via DISM; KMS activation supported, valid 180 days with auto-renewal |
 
 To activate via KMS, run the following commands on the VM:
 

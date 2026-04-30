@@ -9,7 +9,9 @@ powercfg /SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
 REM Copy our sysprep Autounattend for our post-packer first boot
 REM Try OS-specific variant first, fall back to the standard file
-if exist "A:\Firstboot-Autounattend-kubevirt-win2022.xml" (
+if exist "A:\Firstboot-Autounattend-kubevirt-win2025.xml" (
+    copy "A:\Firstboot-Autounattend-kubevirt-win2025.xml" "C:\Windows\Temp\Autounattend.xml"
+) else if exist "A:\Firstboot-Autounattend-kubevirt-win2022.xml" (
     copy "A:\Firstboot-Autounattend-kubevirt-win2022.xml" "C:\Windows\Temp\Autounattend.xml"
 ) else (
     copy "A:\Firstboot-Autounattend-kubevirt.xml" "C:\Windows\Temp\Autounattend.xml"

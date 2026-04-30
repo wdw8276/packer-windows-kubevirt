@@ -19,16 +19,13 @@ ISO_WIN11_25H2_PRO   := iso/Win11_25H2_English_x64_v2.iso
 ISO_WIN10_LTSC_2019  := iso/en_windows_10_enterprise_ltsc_2019_x64_dvd_5795bb03.iso
 ISO_WIN10_LTSC_2021  := iso/en-us_windows_10_enterprise_ltsc_2021_x64_dvd_d289cf96.iso
 ISO_WIN2022_DATACENTER := iso/en_windows_server_2022x64_dvd_.iso
+ISO_WIN2025_DATACENTER := iso/en-us_windows_server_2025_ltsc_eval_x64.iso
 
 # Use '>' as recipe prefix instead of tab (requires GNU Make 4.0+)
 ifeq ($(origin .RECIPEPREFIX), undefined)
   $(error This Make does not support .RECIPEPREFIX. Please use GNU Make 4.0 or later)
 endif
 .RECIPEPREFIX = >
-
-# Default target: build all images
-all: win11_23h2_eval_kubevirt win11_ltsc_2024_kubevirt win11_25h2_pro_kubevirt win10_ltsc_2019_kubevirt win10_ltsc_2021_kubevirt win2022_datacenter_kubevirt
-.PHONY: all
 
 # Validate required build variables
 check-vars:
@@ -50,6 +47,8 @@ clean:
 >rm -f answer_files/2022_datacenter_kubevirt/Autounattend.xml
 >rm -f answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml
 >rm -f answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2022.xml
+>rm -f answer_files/2025_datacenter_kubevirt/Autounattend.xml
+>rm -f answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2025.xml
 .PHONY: clean
 
 # Generate Autounattend XML files from templates, substituting WINRM_PASSWORD and TIMEZONE
@@ -77,6 +76,12 @@ answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml: answer_files/Firstbo
 answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2022.xml: answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2022.xml.tmpl
 >sed 's/{{WINRM_PASSWORD}}/$(WINRM_PASSWORD)/g; s/{{TIMEZONE}}/$(TIMEZONE)/g' $< > $@
 
+answer_files/2025_datacenter_kubevirt/Autounattend.xml: answer_files/2025_datacenter_kubevirt/Autounattend.xml.tmpl
+>sed 's/{{WINRM_PASSWORD}}/$(WINRM_PASSWORD)/g; s/{{TIMEZONE}}/$(TIMEZONE)/g' $< > $@
+
+answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2025.xml: answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2025.xml.tmpl
+>sed 's/{{WINRM_PASSWORD}}/$(WINRM_PASSWORD)/g; s/{{TIMEZONE}}/$(TIMEZONE)/g' $< > $@
+
 # Phony aliases for each image build
 win11_23h2_eval_kubevirt: check-vars output-win11_23h2_eval_kubevirt/win11_23h2_eval_kubevirt
 .PHONY: win11_23h2_eval_kubevirt
@@ -90,6 +95,8 @@ win10_ltsc_2021_kubevirt: check-vars output-windows_10_ltsc_2021_kubevirt/win10_
 .PHONY: win10_ltsc_2021_kubevirt
 win2022_datacenter_kubevirt: check-vars output-windows_2022_datacenter_kubevirt/win2022_datacenter_kubevirt
 .PHONY: win2022_datacenter_kubevirt
+win2025_datacenter_kubevirt: check-vars output-windows_2025_datacenter_kubevirt/win2025_datacenter_kubevirt
+.PHONY: win2025_datacenter_kubevirt
 
 # Packer build rules: XML files are generated first, then packer is invoked
 output-win11_23h2_eval_kubevirt/win11_23h2_eval_kubevirt: \
@@ -217,3 +224,24 @@ output-windows_2022_datacenter_kubevirt/win2022_datacenter_kubevirt: \
 >cp /usr/share/OVMF/OVMF_CODE_4M.ms.fd ./OVMF_CODE.ms.fd
 >cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd ./OVMF_VARS.ms.fd
 >PACKER_LOG=$(PACKER_LOG) packer build -var=headless=$(HEADLESS) -var=winrm_password=$(WINRM_PASSWORD) win2022_datacenter_kubevirt.pkr.hcl
+
+# Win Server 2025 Datacenter requires UEFI firmware files copied locally before build
+output-windows_2025_datacenter_kubevirt/win2025_datacenter_kubevirt: \
+  answer_files/2025_datacenter_kubevirt/Autounattend.xml \
+  answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2025.xml
+>@if [ ! -f "$(ISO_WIN2025_DATACENTER)" ]; then \
+>  echo "ERROR: ISO not found: $(ISO_WIN2025_DATACENTER)"; \
+>  echo "Download Windows Server 2025 Evaluation and place it in the iso/ directory."; \
+>  exit 1; \
+>fi
+>@for f in /usr/share/OVMF/OVMF_CODE_4M.ms.fd /usr/share/OVMF/OVMF_VARS_4M.ms.fd; do \
+>  if [ ! -f "$$f" ]; then \
+>    echo "ERROR: OVMF firmware file not found: $$f"; \
+>    echo "Install it with: apt install ovmf"; \
+>    exit 1; \
+>  fi; \
+>done
+>rm -rf output-windows_2025_datacenter_kubevirt
+>cp /usr/share/OVMF/OVMF_CODE_4M.ms.fd ./OVMF_CODE.ms.fd
+>cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd ./OVMF_VARS.ms.fd
+>PACKER_LOG=$(PACKER_LOG) packer build -var=headless=$(HEADLESS) -var=winrm_password=$(WINRM_PASSWORD) win2025_datacenter_kubevirt.pkr.hcl

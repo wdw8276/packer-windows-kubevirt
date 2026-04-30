@@ -20,3 +20,4 @@ packages/ndp48-x86-x64-allos-enu.exe
 Autounattend.xml
 answer_files/Firstboot/Firstboot-Autounattend-kubevirt.xml
 answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2022.xml
+answer_files/Firstboot/Firstboot-Autounattend-kubevirt-win2025.xml
