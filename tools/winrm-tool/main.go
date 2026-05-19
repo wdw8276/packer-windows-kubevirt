@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf16"
 )
 
 type Command struct {
@@ -27,20 +28,23 @@ type Config struct {
 	password string
 	https    bool
 	retries  int
+	timeout  int
 	commands string
 	kms      string
 	ipk      string
 }
 
 func newClient(cfg *Config) *http.Client {
+	timeout := time.Duration(cfg.timeout) * time.Second
 	if cfg.https {
 		return &http.Client{
+			Timeout: timeout,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		}
 	}
-	return &http.Client{}
+	return &http.Client{Timeout: timeout}
 }
 
 func winrmPost(cfg *Config, client *http.Client, body string) (string, error) {
@@ -68,6 +72,28 @@ func winrmPost(cfg *Config, client *http.Client, body string) (string, error) {
 	defer resp.Body.Close()
 	data, _ := io.ReadAll(resp.Body)
 	return string(data), nil
+}
+
+// psToEncoded converts "powershell -Command "..."" to -EncodedCommand form
+// to bypass Windows command line length limits (8191 chars for cmd.exe).
+var psCmdRe = regexp.MustCompile(`(?i)-[Cc]ommand\s+"(.*)"$`)
+
+func psToEncoded(cmd string) string {
+	if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(cmd)), "powershell") {
+		return cmd
+	}
+	m := psCmdRe.FindStringSubmatch(cmd)
+	if m == nil {
+		return cmd
+	}
+	script := m[1]
+	utf16le := utf16.Encode([]rune(script))
+	buf := make([]byte, len(utf16le)*2)
+	for i, r := range utf16le {
+		buf[i*2] = byte(r)
+		buf[i*2+1] = byte(r >> 8)
+	}
+	return "powershell -NoProfile -ExecutionPolicy Bypass -EncodedCommand " + base64.StdEncoding.EncodeToString(buf)
 }
 
 func endpoint(cfg *Config) string {
@@ -185,6 +211,7 @@ func receiveOutput(cfg *Config, client *http.Client, shellID, cmdID string) (str
 // execCmd runs a single command and prints output. Returns stdout and rc (-1 on error).
 func execCmd(cfg *Config, name, cmd string) (string, int) {
 	fmt.Printf("\n=== %s ===\n", name)
+	cmd = psToEncoded(cmd)
 	var lastErr error
 	for attempt := 0; attempt < cfg.retries; attempt++ {
 		client := newClient(cfg)
@@ -262,13 +289,6 @@ func activateKMS(cfg *Config) {
 		`powershell -Command "cscript C:\Windows\System32\slmgr.vbs /dli"`)
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 var sampleCommands = []Command{
 	{Name: "hostname", Cmd: "hostname"},
 	{Name: "whoami", Cmd: "whoami"},
@@ -315,6 +335,7 @@ func main() {
 	flag.StringVar(&cfg.password, "pass", "", "password (required)")
 	flag.BoolVar(&cfg.https, "https", true, "use HTTPS with Basic auth; set false for HTTP")
 	flag.IntVar(&cfg.retries, "retries", 6, "retry count on failure")
+	flag.IntVar(&cfg.timeout, "timeout", 10, "HTTP request timeout in seconds")
 	flag.StringVar(&cfg.commands, "commands", "commands.json", "path to commands JSON file")
 	flag.StringVar(&cfg.kms, "kms", "", "KMS server for activation (e.g. 10.1.2.3 or 10.1.2.3:1688)")
 	flag.StringVar(&cfg.ipk, "ipk", "", "product key to install before KMS activation (optional)")

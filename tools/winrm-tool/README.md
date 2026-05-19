@@ -69,6 +69,13 @@ go run main.go -host 192.168.1.100 -pass <password> \
 | `-port`     | `5986`          | WinRM port                                       |
 | `-https`    | `true`          | Use HTTPS with Basic auth; `false` for HTTP      |
 | `-retries`  | `6`             | Retry count on failure (3s delay between retries)|
+| `-timeout`  | `10`            | HTTP request timeout in seconds                  |
+
+## Long command handling
+
+PowerShell commands matching `powershell -Command "..."` are automatically
+re-encoded as `-EncodedCommand <UTF-16LE base64>` before sending, bypassing
+the Windows command line length limit (8191 chars for cmd.exe).
 | `-commands` | `commands.json` | Path to commands file (check mode)               |
 | `-kms`      |                 | KMS server address — triggers activation mode    |
 | `-ipk`      |                 | Product key to install before KMS activation     |
