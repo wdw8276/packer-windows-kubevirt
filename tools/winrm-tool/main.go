@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
@@ -35,26 +36,24 @@ type Config struct {
 }
 
 func newClient(cfg *Config) *http.Client {
-	timeout := time.Duration(cfg.timeout) * time.Second
 	if cfg.https {
 		return &http.Client{
-			Timeout: timeout,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		}
 	}
-	return &http.Client{Timeout: timeout}
+	return &http.Client{}
 }
 
-func winrmPost(cfg *Config, client *http.Client, body string) (string, error) {
+func winrmPost(ctx context.Context, cfg *Config, client *http.Client, body string) (string, error) {
 	scheme := "http"
 	if cfg.https {
 		scheme = "https"
 	}
 	url := fmt.Sprintf("%s://%s:%d/wsman", scheme, cfg.host, cfg.port)
 
-	req, _ := http.NewRequest("POST", url, bytes.NewBufferString(body))
+	req, _ := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/soap+xml;charset=UTF-8")
 	req.Header.Set("Connection", "close")
 
@@ -104,7 +103,7 @@ func endpoint(cfg *Config) string {
 	return fmt.Sprintf("%s://%s:%d/wsman", scheme, cfg.host, cfg.port)
 }
 
-func createShell(cfg *Config, client *http.Client) (string, error) {
+func createShell(ctx context.Context, cfg *Config, client *http.Client) (string, error) {
 	body := fmt.Sprintf(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"
     xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing"
     xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd">
@@ -124,7 +123,7 @@ func createShell(cfg *Config, client *http.Client) (string, error) {
   </rsp:Shell></s:Body>
 </s:Envelope>`, endpoint(cfg))
 
-	resp, err := winrmPost(cfg, client, body)
+	resp, err := winrmPost(ctx, cfg, client, body)
 	if err != nil {
 		return "", err
 	}
@@ -136,7 +135,7 @@ func createShell(cfg *Config, client *http.Client) (string, error) {
 	return m[1], nil
 }
 
-func runCommand(cfg *Config, client *http.Client, shellID, cmd string) (string, error) {
+func runCommand(ctx context.Context, cfg *Config, client *http.Client, shellID, cmd string) (string, error) {
 	body := fmt.Sprintf(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"
     xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing"
     xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"
@@ -155,7 +154,7 @@ func runCommand(cfg *Config, client *http.Client, shellID, cmd string) (string, 
   <s:Body><rsp:CommandLine><rsp:Command>%s</rsp:Command></rsp:CommandLine></s:Body>
 </s:Envelope>`, endpoint(cfg), shellID, cmd)
 
-	resp, err := winrmPost(cfg, client, body)
+	resp, err := winrmPost(ctx, cfg, client, body)
 	if err != nil {
 		return "", err
 	}
@@ -167,7 +166,7 @@ func runCommand(cfg *Config, client *http.Client, shellID, cmd string) (string, 
 	return m[1], nil
 }
 
-func receiveOutput(cfg *Config, client *http.Client, shellID, cmdID string) (string, string, error) {
+func receiveOutput(ctx context.Context, cfg *Config, client *http.Client, shellID, cmdID string) (string, string, error) {
 	body := fmt.Sprintf(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"
     xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing"
     xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"
@@ -186,7 +185,7 @@ func receiveOutput(cfg *Config, client *http.Client, shellID, cmdID string) (str
   <s:Body><rsp:Receive><rsp:DesiredStream CommandId="%s">stdout stderr</rsp:DesiredStream></rsp:Receive></s:Body>
 </s:Envelope>`, endpoint(cfg), shellID, cmdID)
 
-	resp, err := winrmPost(cfg, client, body)
+	resp, err := winrmPost(ctx, cfg, client, body)
 	if err != nil {
 		return "", "", err
 	}
@@ -212,22 +211,27 @@ func receiveOutput(cfg *Config, client *http.Client, shellID, cmdID string) (str
 func execCmd(cfg *Config, name, cmd string) (string, int) {
 	fmt.Printf("\n=== %s ===\n", name)
 	cmd = psToEncoded(cmd)
+	timeout := time.Duration(cfg.timeout) * time.Second
 	var lastErr error
 	for attempt := 0; attempt < cfg.retries; attempt++ {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		client := newClient(cfg)
-		shellID, err := createShell(cfg, client)
+		shellID, err := createShell(ctx, cfg, client)
 		if err != nil {
+			cancel()
 			lastErr = fmt.Errorf("createShell: %w", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
-		cmdID, err := runCommand(cfg, client, shellID, cmd)
+		cmdID, err := runCommand(ctx, cfg, client, shellID, cmd)
 		if err != nil {
+			cancel()
 			lastErr = fmt.Errorf("runCommand: %w", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
-		stdout, stderr, err := receiveOutput(cfg, client, shellID, cmdID)
+		stdout, stderr, err := receiveOutput(ctx, cfg, client, shellID, cmdID)
+		cancel()
 		if err != nil {
 			lastErr = fmt.Errorf("receiveOutput: %w", err)
 			time.Sleep(3 * time.Second)
